@@ -9,12 +9,16 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
 	UpLoadUrl   string `json:"upLoadUrl"`
 	DelUrl      string `json:"delUrl"`
+	Directory   string `json:"directory"`
+	Repo        string `json:"repo"`
 	Sfcsrftoken string `json:"sfcsrftoken"`
 	Sessionid   string `json:"sessionid"`
 	File        string `json:"file"`
@@ -34,17 +38,21 @@ func main() {
 	delUrl := config.DelUrl
 	file := config.File
 	fileName := file[strings.LastIndex(file, "/")+1:]
-
+	delUrl = strings.ReplaceAll(delUrl, "${repo}", config.Repo)
+	delUrl = strings.ReplaceAll(delUrl, "${directory}", config.Directory)
 	deleteOld(delUrl, cookie, sfcsrftoken, fileName)
 
 	uploadUrl := config.UpLoadUrl
+	uploadUrl = strings.ReplaceAll(uploadUrl, "${repo}", config.Repo)
+	uploadUrl = strings.ReplaceAll(uploadUrl, "${directory}", config.Directory)
+	uploadUrl = strings.ReplaceAll(uploadUrl, "${time}", strconv.FormatInt(time.Now().UnixNano()/1e6, 10))
 	url, err := getUploadUrl(uploadUrl, cookie)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	url = url[1 : len(url)-1]
-	err = upload(url, cookie, file)
+	err = upload(url, cookie, file, config.Directory)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -75,7 +83,7 @@ func getUploadUrl(from, cookie string) (string, error) {
 	return string(body), nil
 }
 
-func upload(url, cookie, fileName string) error {
+func upload(url, cookie, fileName, directory string) error {
 	method := "POST"
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -85,7 +93,7 @@ func upload(url, cookie, fileName string) error {
 	defer file.Close()
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
-	writer.WriteField("parent_dir", "/")
+	writer.WriteField("parent_dir", directory)
 	part, err := writer.CreateFormFile("file", fileName)
 	if err != nil {
 		return err
@@ -121,7 +129,7 @@ func upload(url, cookie, fileName string) error {
 
 func deleteOld(url, cookie, sfcsrftoken, fileName string) error {
 	method := "DELETE"
-	url = url + fileName
+	url = url + "/" + fileName
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return err
