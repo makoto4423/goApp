@@ -6,6 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"strconv"
 	"time"
 )
@@ -76,9 +78,36 @@ func InsertOne(collection *mongo.Collection) {
 	docs := bson.D{
 		{"forever", time.Now()},
 	}
+	collection.Database().WriteConcern().W = 2
 	res, err := collection.InsertOne(context.TODO(), docs)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Inserted a single document: %v\n", res.InsertedID)
+}
+
+func Transaction(client *mongo.Client) {
+	session, err := client.StartSession()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		session.EndSession(context.TODO())
+	}()
+	err = session.StartTransaction()
+	if err != nil {
+		panic(err)
+	}
+	wc := writeconcern.Majority()
+	txnOptions := options.Transaction().SetWriteConcern(wc)
+
+	collection := client.Database("makoto").Collection("clash")
+	_, err = session.WithTransaction(context.TODO(), func(ctx mongo.SessionContext) (interface{}, error) {
+		result, err := collection.InsertMany(ctx, []interface{}{
+			bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},
+			bson.D{{"title", "Sula"}, {"author", "Toni Morrison"}},
+			bson.D{{"title", "Song of Solomon"}, {"author", "Toni Morrison"}},
+		})
+		return result, err
+	}, txnOptions)
 }
