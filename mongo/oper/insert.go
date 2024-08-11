@@ -100,14 +100,18 @@ func Transaction(client *mongo.Client) {
 	}
 	wc := writeconcern.Majority()
 	txnOptions := options.Transaction().SetWriteConcern(wc)
-
+	docs := []interface{}{
+		bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},
+		bson.D{{"title", "Sula"}, {"author", "Toni Morrison"}},
+		bson.D{{"title", "Song of Solomon"}, {"author", "Toni Morrison"}},
+	}
 	collection := client.Database("makoto").Collection("clash")
 	_, err = session.WithTransaction(context.TODO(), func(ctx mongo.SessionContext) (interface{}, error) {
-		result, err := collection.InsertMany(ctx, []interface{}{
-			bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},
-			bson.D{{"title", "Sula"}, {"author", "Toni Morrison"}},
-			bson.D{{"title", "Song of Solomon"}, {"author", "Toni Morrison"}},
-		})
+		result, err := collection.InsertMany(ctx, docs)
 		return result, err
 	}, txnOptions)
+	//err = session.CommitTransaction(context.TODO())
+	//if err != nil {
+	//	return
+	//}
 }
