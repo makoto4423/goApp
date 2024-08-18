@@ -2,11 +2,13 @@ package oper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 )
 
 func FindOne(collection *mongo.Collection) {
@@ -17,6 +19,10 @@ func FindOne(collection *mongo.Collection) {
 	})
 	raw, err := res.Raw()
 	if err != nil {
+		log.Print("findOne err: ", err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return
+		}
 		panic(err)
 	}
 	raw, err = bson.MarshalExtJSON(raw, false, false)

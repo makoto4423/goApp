@@ -19,6 +19,7 @@ func RunCommand(collection *mongo.Collection) {
 	//})
 	//fmt.Println("unlock")
 }
+
 func RunCommand0(collection *mongo.Collection, command interface{}) {
 	db := collection.Database()
 	result := db.RunCommand(context.TODO(), command)
@@ -32,4 +33,14 @@ func RunCommand0(collection *mongo.Collection, command interface{}) {
 		panic(err)
 	}
 	fmt.Println(out)
+}
+
+func CreateIndex(collection *mongo.Collection) {
+	name, err := collection.Indexes().CreateOne(context.TODO(), mongo.IndexModel{
+		Keys: bson.D{{"item", 1}},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(name)
 }
