@@ -1,0 +1,35 @@
+// 管道操作符
+https://mongodb.net.cn/manual/reference/operator/aggregation-pipeline/
+
+
+db.students2.updateMany( {},
+  [
+    { $replaceRoot: { newRoot:
+       { $mergeObjects: [ { quiz1: 0, quiz2: 0, test1: 0, test2: 0 }, "$$ROOT" ] }
+    } },
+    { $set: { modified: "$$NOW"}  }
+  ]
+)
+当属性缺失时补充默认值
+附带 $mergeObjects 表达式的 $replaceRoot 阶段，以便为 quiz1、quiz2、test1 和 test2 字段设置默认值。聚合变量 ROOT 是指当前修改的文档。要访问此变量，请将 $ 用作前缀，并用引号括起来。当前文档字段将覆盖这些默认值。
+
+db.students2.find({modified:{$lt: new Date()}}) 根据当时时间过滤
+
+db.students3.updateMany(
+   { },
+   [
+     { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] }, modified: "$$NOW" } },
+     { $set: { grade: { $switch: {
+                           branches: [
+                               { case: { $gte: [ "$average", 90 ] }, then: "A" },
+                               { case: { $gte: [ "$average", 80 ] }, then: "B" },
+                               { case: { $gte: [ "$average", 70 ] }, then: "C" },
+                               { case: { $gte: [ "$average", 60 ] }, then: "D" }
+                           ],
+                           default: "F"
+     } } } }
+   ]
+)
+$trunc 小数位数截取
+
+$project 将带有请求字段的文档传递到管道的下一个阶段。指定的字段可以是输入文档中的现有字段，也可以是新计算的字段。

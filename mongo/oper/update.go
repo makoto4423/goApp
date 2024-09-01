@@ -53,3 +53,31 @@ func UpdateOne(collection *mongo.Collection) {
 	}
 	fmt.Println(res.ModifiedCount)
 }
+
+// UpdateIfNotExists { $replaceRoot: { newRoot:
+//
+//	   { $mergeObjects: [ { quiz1: 0, quiz2: 0, test1: 0, test2: 0 }, "$$ROOT" ] }
+//	} },
+//	{ $set: { modified: "$$NOW"}  }
+func UpdateIfNotExists(collection *mongo.Collection) {
+	many, err := collection.UpdateMany(context.TODO(), bson.D{}, bson.A{
+		bson.D{
+			{"$replaceRoot", bson.D{
+				{"newRoot", bson.D{
+					{"$mergeObjects", bson.A{
+						bson.D{
+							{"quiz1", 0},
+							{"quiz2", 0},
+							{"test1", 0},
+						},
+						"$$ROOT",
+					}},
+				}},
+			}},
+		},
+	})
+	if err != nil {
+		return
+	}
+	fmt.Println(many)
+}

@@ -44,3 +44,37 @@ func CreateIndex(collection *mongo.Collection) {
 	}
 	fmt.Println(name)
 }
+
+// Watch 只有在分片下才能使用
+func Watch(collection *mongo.Collection) {
+	watch, err := collection.Watch(context.TODO(), mongo.Pipeline{
+		bson.D{
+			{"$match", bson.D{{
+				"operationType", "insert",
+			}}},
+		},
+	})
+	if err != nil {
+		panic(err)
+		return
+	}
+	i := 0
+	for watch.Next(context.TODO()) {
+		var m map[string]interface{}
+		err := watch.Decode(&m)
+		if err != nil {
+			return
+		}
+		fmt.Println(m)
+		i++
+		if i == 2 {
+			break
+		}
+	}
+	defer func() {
+		err = watch.Close(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+	}()
+}

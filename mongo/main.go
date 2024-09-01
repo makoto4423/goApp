@@ -8,7 +8,7 @@ import (
 func main() {
 	client := client2.GetClient()
 
-	collection := client.Database("makoto").Collection("clash")
+	collection := client.Database("makoto").Collection("students2")
 
-	oper.CreateIndex(collection)
+	oper.Watch(collection)
 }

@@ -115,3 +115,18 @@ func Transaction(client *mongo.Client) {
 	//	return
 	//}
 }
+
+func BulkWrite(collection *mongo.Collection) {
+	writeOption := false
+	write, err := collection.BulkWrite(context.TODO(), []mongo.WriteModel{
+		&mongo.InsertOneModel{
+			Document: bson.D{},
+		},
+	}, &options.BulkWriteOptions{
+		Ordered: &writeOption,
+	})
+	if err != nil {
+		return
+	}
+	fmt.Printf(strconv.FormatInt(write.InsertedCount, 10))
+}
