@@ -92,3 +92,10 @@ func Query(collection *mongo.Collection) {
 		fmt.Println(elem)
 	}
 }
+
+func Estimate(collection *mongo.Collection) {
+	//filter := bson.D{{}}
+	estCount, _ := collection.EstimatedDocumentCount(context.TODO())
+	fmt.Println(estCount)
+
+}

@@ -33,3 +33,14 @@ db.students3.updateMany(
 $trunc 小数位数截取
 
 $project 将带有请求字段的文档传递到管道的下一个阶段。指定的字段可以是输入文档中的现有字段，也可以是新计算的字段。
+
+慢查询
+db.getProfilingStatus()/ db.setProfilingLevel(2) 
+打开慢查询日志开关，level：2 代表记录所有查询，忽略阈值
+db.system.profile.find().limit(10) 查
+
+当前所有连接
+db.getSiblingDB("admin").aggregate([{$currentOp: {allUsers: true, idleSessions : true, localOps: true}}])
+
+$elementMatch 子属性全部匹配
+
