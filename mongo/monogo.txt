@@ -44,3 +44,72 @@ db.getSiblingDB("admin").aggregate([{$currentOp: {allUsers: true, idleSessions :
 
 $elementMatch 子属性全部匹配
 
+
+假设mongo中有以下数据
+db.students.insert([
+    {
+        "name": "appple",
+        "color": [
+            "red",
+            "green"
+        ]
+    },
+    {
+        "name": "mongo",
+        "color": [
+            "yellow",
+            "green"
+        ]
+    }
+])
+db.students.find({color:"red"}) 返回apple
+db.students.find({color:"red"}) 返回apple 返回apple,  mongo
+db.students.find({$and:[{color:"red"},{color:"green"}]}) 返回apple
+db.students.find({color:["green", "red"]}) 什么都不返回
+
+
+$month, 可以格式化 date属性，输出月份，但只能在管道中使用，所以筛选中某个月份的数据，$project，然后$match
+
+
+db.users.aggregate([
+  {$match: {gender: 'female'}},
+  {$group: {
+    _id: '$department',
+    emp_qty: {$sum: 1}
+  }},
+  {$match: {emp_qty:{$lt: 10}}}
+])
+
+select department, count(1) as emp_qty
+from users
+where gender = 'female'
+group by department
+having count(1) < 10
+
+// group by 多个字段
+db.getCollection('supplies').aggregate(
+  [
+    {
+      $group: { _id: { a: '$qty', b: '$price' } }
+    },
+    {
+      $project: {
+        a: '$_id.a',
+        b: '$_id.b',
+        q: { $sum: 1 }
+      }
+    }
+  ],
+  { maxTimeMS: 60000, allowDiskUse: true }
+);
+
+db.products.aggregate([{
+  $bucket: {
+    groupBy: "$price",
+    boundaries: [0,10,20,30],
+    default: 'other',
+    ouput:{"count":{$sum:1}}
+  }
+}])
+
+
