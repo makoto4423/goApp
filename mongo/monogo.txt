@@ -112,4 +112,28 @@ db.products.aggregate([{
   }
 }])
 
+$lookup 连表查询，会把关系强制转成数组，即使localField 不是数组
+左外关联，右表数据查不到则不显示(直接忽略，不会有null)
+db.contacts.aggregate([
+    {
+        $lookup: {
+            from: "groups", // 不能是分片表
+            localField: "groups_id",
+            foreignField: "group_id",
+            as: "groups"
+        }
+    }
+])
+
+db.contacts.aggregate([
+    {
+        $lookup: {
+            from: "address",
+            localField: "address_id",
+            foreignField: "address_id",
+            as: "address"
+        }
+    }
+])
+
 
