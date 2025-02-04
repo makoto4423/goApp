@@ -136,4 +136,26 @@ db.contacts.aggregate([
     }
 ])
 
+journal
+
+rs.reconfig(conf) 运行时修改rs.conf()
+集群写, 有延迟复制节点的情况下, wtimeout触发, 但实际上仍会写入
+
+从库，db.fsyncLock 会阻止数据库写入，不管writeConcern设置的是什么
+
+单节点的多次更新同一条数据，怎么控制并发，只有开启了事务才需要处理(多个事务更新同一条记录会失败)
+
+writeConcern, readConcern, readPref
+
+readConcern:linearizable 读取所有节点 只针对单个文档
+
+changstream, resumeAfter断点重试 -- 类似消息队列
+
+有ttl索引
+
+serverStatus
+
+分片集群的均衡器是什么
+
+
 
